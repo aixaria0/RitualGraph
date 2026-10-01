@@ -1,0 +1,73 @@
+{
+  "schema_version": "0.1",
+  "name": "Molecular AI Reference Pipeline",
+  "version": "0.1.0",
+  "description": "Vendor-neutral reference model for an AI-assisted molecular discovery pipeline. It intentionally separates established AML classes from research hypotheses.",
+  "assets": [
+    {"id":"A-EXT","name":"External Sources","kind":"external","trust_boundary":"internet","criticality":"medium","baseline":{"confidentiality":0.2,"integrity":0.7,"availability":0.9,"provenance":0.5,"fidelity":0.8,"attack_surface":0.8}},
+    {"id":"A-DATA","name":"Curated Scientific Corpus","kind":"dataset","trust_boundary":"data-platform","criticality":"critical","baseline":{"confidentiality":0.8,"integrity":0.95,"availability":0.95,"provenance":0.95,"fidelity":0.95,"attack_surface":0.3}},
+    {"id":"A-MODEL","name":"Molecular Foundation Model","kind":"model","trust_boundary":"model-platform","criticality":"critical","baseline":{"confidentiality":0.95,"integrity":0.98,"availability":0.95,"provenance":0.95,"fidelity":0.97,"attack_surface":0.25}},
+    {"id":"A-AGENT","name":"Discovery Agent","kind":"agent","trust_boundary":"runtime","criticality":"critical","baseline":{"confidentiality":0.9,"integrity":0.95,"availability":0.95,"provenance":0.9,"fidelity":0.95,"attack_surface":0.35}},
+    {"id":"A-DECISION","name":"Scientific Decision Record","kind":"decision","trust_boundary":"human-review","criticality":"critical","baseline":{"confidentiality":0.9,"integrity":0.98,"availability":0.95,"provenance":0.98,"fidelity":0.98,"attack_surface":0.15}}
+  ],
+  "threats": [
+    {
+      "id":"T-POISON","name":"Training or retrieval data poisoning","source":"A-EXT","target":"A-DATA",
+      "preconditions":["untrusted content reaches ingestion path"],
+      "effects":{"confidentiality":0,"integrity":-0.35,"availability":0,"provenance":-0.45,"fidelity":-0.2,"attack_surface":0.1},
+      "taxonomy":{"stride":["T"],"ciap":["Integrity","Provenance"],"nist_aml":["poisoning"]},
+      "evidence_status":"established_attack_class",
+      "evidence":[{"kind":"standard","reference":"NIST AI 100-2e2025","confidence":0.95}],
+      "controls":["C-PROVENANCE"]
+    },
+    {
+      "id":"T-SUPPLY","name":"Unauthorized model artifact substitution","source":"A-DATA","target":"A-MODEL",
+      "preconditions":["artifact promotion without cryptographic identity verification"],
+      "effects":{"confidentiality":0,"integrity":-0.45,"availability":-0.05,"provenance":-0.5,"fidelity":-0.3,"attack_surface":0.15},
+      "taxonomy":{"stride":["S","T"],"ciap":["Integrity","Provenance"],"nist_aml":["other"]},
+      "evidence_status":"plausible_mechanism",
+      "evidence":[{"kind":"internal","reference":"RitualGraph supply-chain reference scenario","confidence":0.8}],
+      "controls":["C-SIGNATURE"]
+    },
+    {
+      "id":"T-INJECTION","name":"Indirect prompt injection through retrieved content","source":"A-MODEL","target":"A-AGENT",
+      "preconditions":["agent consumes untrusted instructions as data","agent has tool capability"],
+      "effects":{"confidentiality":-0.25,"integrity":-0.3,"availability":-0.05,"provenance":-0.2,"fidelity":-0.15,"attack_surface":0.2},
+      "taxonomy":{"stride":["T","I","E"],"ciap":["Confidentiality","Integrity","Provenance"],"nist_aml":["misuse"]},
+      "evidence_status":"established_attack_class",
+      "evidence":[{"kind":"standard","reference":"NIST AI 100-2e2025 (GenAI misuse/attack taxonomy)","confidence":0.9}],
+      "controls":["C-TOOL-GATE"]
+    },
+    {
+      "id":"T-DECISION-DRIFT","name":"Compromised agent output contaminates scientific decision","source":"A-AGENT","target":"A-DECISION",
+      "preconditions":["single-channel acceptance of model output"],
+      "effects":{"confidentiality":0,"integrity":-0.4,"availability":0,"provenance":-0.25,"fidelity":-0.35,"attack_surface":0.05},
+      "taxonomy":{"stride":["T","R"],"ciap":["Integrity","Provenance"],"nist_aml":["other"]},
+      "evidence_status":"plausible_mechanism",
+      "evidence":[{"kind":"internal","reference":"RitualGraph decision-integrity scenario","confidence":0.85}],
+      "controls":["C-INDEPENDENT-VERIFY"]
+    },
+    {
+      "id":"T-THERMAL-HYP","name":"Thermally induced computation-integrity disturbance","source":"A-MODEL","target":"A-AGENT",
+      "preconditions":["privileged infrastructure manipulation","reproducible correlation with workload integrity"],
+      "effects":{"confidentiality":0,"integrity":-0.1,"availability":-0.05,"provenance":-0.05,"fidelity":-0.1,"attack_surface":0.05},
+      "taxonomy":{"stride":["T","D"],"ciap":["Integrity","Availability","Provenance"],"nist_aml":["other"]},
+      "evidence_status":"research_hypothesis",
+      "evidence":[{"kind":"hypothesis","reference":"Requires controlled hardware validation; not asserted as a deployed attack","confidence":0.25}],
+      "controls":["C-TELEMETRY"]
+    }
+  ],
+  "controls": [
+    {"id":"C-PROVENANCE","name":"Signed dataset lineage and source quorum","mitigates":["T-POISON"],"effectiveness":0.85,"metric_coverage":{"integrity":0.9,"provenance":1.0,"fidelity":0.7,"attack_surface":0.5},"verification":["lineage completeness test","signature verification","source diversity check"]},
+    {"id":"C-SIGNATURE","name":"Model artifact identity gate","mitigates":["T-SUPPLY"],"effectiveness":0.95,"metric_coverage":{"integrity":1.0,"provenance":1.0,"fidelity":0.9,"attack_surface":0.7},"verification":["digest match","signature chain verification","promotion policy test"]},
+    {"id":"C-TOOL-GATE","name":"Data/instruction separation and least-privilege tool gate","mitigates":["T-INJECTION"],"effectiveness":0.8,"metric_coverage":{"confidentiality":0.9,"integrity":0.8,"provenance":0.7,"attack_surface":0.9},"verification":["untrusted content cannot authorize tools","egress allowlist test","tool argument policy test"]},
+    {"id":"C-INDEPENDENT-VERIFY","name":"Independent scientific verification gate","mitigates":["T-DECISION-DRIFT"],"effectiveness":0.9,"metric_coverage":{"integrity":0.95,"provenance":0.9,"fidelity":0.95},"verification":["independent model or assay corroboration","human sign-off for critical decision"]},
+    {"id":"C-TELEMETRY","name":"Compute integrity telemetry and attestation","mitigates":["T-THERMAL-HYP"],"effectiveness":0.7,"metric_coverage":{"integrity":0.8,"availability":0.8,"provenance":0.8,"fidelity":0.7},"verification":["hardware telemetry anomaly test","attestation freshness test"]}
+  ],
+  "invariants": [
+    {"id":"INV-DATA-PROV","name":"Curated data provenance remains trustworthy","asset":"A-DATA","metric":"provenance","operator":">=","threshold":0.8,"rationale":"Training and retrieval inputs require attributable lineage."},
+    {"id":"INV-MODEL-INTEGRITY","name":"Promoted model integrity remains high","asset":"A-MODEL","metric":"integrity","operator":">=","threshold":0.9,"rationale":"Critical model artifacts must remain identical to approved artifacts."},
+    {"id":"INV-AGENT-SURFACE","name":"Runtime attack surface remains bounded","asset":"A-AGENT","metric":"attack_surface","operator":"<=","threshold":0.5,"rationale":"Agent privileges and ingress paths must remain bounded."},
+    {"id":"INV-DECISION-INTEGRITY","name":"Scientific decision integrity remains high","asset":"A-DECISION","metric":"integrity","operator":">=","threshold":0.9,"rationale":"No single model output may silently degrade a critical scientific decision."}
+  ]
+}
