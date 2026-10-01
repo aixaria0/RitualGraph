@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ritualgraph"
+version = "0.1.0"
+description = "Executable threat modeling for AI systems: typed graphs, invariants, evidence, simulation, and CI gates."
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "Apache-2.0"}
+authors = [
+  {name = "Aix"},
+  {name = "Architect"}
+]
+dependencies = [
+  "pydantic>=2.8,<3",
+  "typer>=0.12,<1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9"]
+
+[project.scripts]
+ritualgraph = "ritualgraph.cli:app"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
