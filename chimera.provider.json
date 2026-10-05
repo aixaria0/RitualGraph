@@ -1,0 +1,28 @@
+{
+  "schema": "chimera-provider/v1",
+  "repository": "aixaria0/RitualGraph",
+  "role": "invariants",
+  "control_plane": "aixaria0/CHIMERA-ONE",
+  "version": "0.1.0",
+  "entrypoints": [
+    {
+      "capability": "ritualgraph.compile",
+      "command": ["ritualgraph", "compile"],
+      "mode": "bounded-execution",
+      "network": "none",
+      "mutation": "none"
+    },
+    {
+      "capability": "ritualgraph.evaluate-invariants",
+      "command": ["ritualgraph", "run"],
+      "mode": "verification",
+      "network": "none",
+      "mutation": "none"
+    }
+  ],
+  "boundaries": [
+    "Threat specifications are typed data, not arbitrary executable code.",
+    "Evidence status is preserved and does not silently become factual authority.",
+    "Invariant results are scoped to the declared model and normalized state semantics."
+  ]
+}
